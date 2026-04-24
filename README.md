@@ -1,127 +1,202 @@
-# Inji Verify
+# LucidLedger — Inji Verify Customization
 
-Injiverify is a web interface to verify the validity of the QR / credential using a browser from smartphone / tablet / computer. A user should be able to do primariliy 4 key actions - Scan, Validate, Fetch, Display.
-
-# Contents:
-
-This document contains the following sections:
-
-- Installations
-- Folder Structure
-- Developer Setup
-- Demo Setup
+> **Internship Assignment** | MOSIP Inji Stack Integration | Jishn | April 2026
 
 ---
 
-# Installations:
+## 🌐 Live Demo
 
-Prerequisites:
+| Page | Link |
+|------|------|
+| 🏠 Home | [verify-ui-alpha.vercel.app](https://verify-ui-alpha.vercel.app) |
+| 🔐 Consent / OTP Page | [verify-ui-alpha.vercel.app/consent](https://verify-ui-alpha.vercel.app/consent) |
+| ✅ Loan Processing Page | [verify-ui-alpha.vercel.app/landing](https://verify-ui-alpha.vercel.app/landing) |
 
-- **JAVA 21**
-
-  Can be installed using [sdkman](https://sdkman.io/). Run following commands to install node
-
-  ```shell
-  $ curl -s "https://get.sdkman.io" | bash
-  $ sdk install java 21.0.5-tem
-  ```
-- [Maven](https://maven.apache.org/install.html) 
-
-# Folder Structure:
-
-Once the repo is cloned, following folders can be found under the inji-verify repository folder:
-
-- **deploy:** folder contains deployment scripts required to deploy on K8S
-- **helm:** folder contains helm charts required to deploy on K8S
-- **samples:** folder contains sample QR codes for testing
-- **ui:** contains the application source code for web UI, Dockerfile and docker-compose.yml files
-  - src (source code)
-  - Dockerfile
-  - docker-compose.yml
-  - [Readme.md](./verify-ui/README.md)
-- **ui-test:** contains the ui automation tests
-- **verify-service:** contains source code for the verify backend service
-- **verify-service-bom:** contains BOM for the verify backend service dependencies
+**To test the demo:**
+1. Open https://verify-ui-alpha.vercel.app/consent
+2. Enter OTP: **`111111`** (one digit per box)
+3. Click **"Verify & Continue"**
+4. You land on the success page automatically ✅
 
 ---
 
-# Developer Setup:
+## 🎯 What This Project Does
 
-Once the repo is cloned, move into the inji-verify repository folder and run the following command to check out to the develop branch:
+This is the official **MOSIP Inji Verify** application, customized with a post-login consent and loan processing flow.
 
-```shell
-cd inji-verify # move into the repository folder
-git checkout develop
+### The Problem It Solves
+MOSIP Inji Verify allows users to verify their identity using a **Verifiable Credential (VC)**. After a user successfully verifies their identity, this customization adds:
+1. A **Consent/OTP page** — the user must enter a 6-digit OTP (`111111`) to confirm they consent to sharing their data
+2. A **Loan Processing page** — confirms their loan application is being processed
+
+### How It Works (Step by Step)
+
+```
+User opens Inji Verify
+        │
+        ▼
+  Uploads VC (QR Code / PDF)
+        │
+        ▼
+  Inji Verify scans & verifies the credential
+        │
+        ▼ (if verification = SUCCESS)
+  ┌─────────────────────────────┐
+  │   /consent — OTP Page       │  ← We built this
+  │   Enter 111111 → click      │
+  │   "Verify & Continue"       │
+  └─────────────┬───────────────┘
+                │
+                ▼ (auto redirect)
+  ┌─────────────────────────────┐
+  │   /landing — Success Page   │  ← We built this
+  │   "Welcome! Thank You."     │
+  │   "Your loan application    │
+  │    is being processed."     │
+  └─────────────────────────────┘
 ```
 
-### Development server:
+---
 
-To get a development server up and running, run the following commands:
+## 🗂️ Files Added / Modified
 
-```shell
-mvn clean
-mvn spring-boot:run
+### New Files (Built from scratch)
+
+| File | What it does |
+|------|-------------|
+| `verify-ui/src/pages/ConsentPage.tsx` | 6-digit OTP page. Only `111111` is accepted. Shakes on wrong OTP. Auto-redirects to `/landing` on success. |
+| `verify-ui/src/pages/LandingPage.tsx` | Success page with animated checkmark, live status tracker, reference ID, and loan processing message. |
+
+### Modified Files
+
+| File | What changed |
+|------|-------------|
+| `verify-ui/src/App.tsx` | Imported and registered `/consent` and `/landing` routes |
+| `verify-ui/src/utils/config.ts` | Added `Consent` and `Landing` to the `Pages` config object |
+| `verify-ui/src/components/Home/VerificationSection/Result/index.tsx` | Added `useEffect` to auto-redirect to `/consent` when VC verification returns `SUCCESS` |
+| `verify-ui/package.json` | Changed start script to be Windows-compatible (removed Linux `sh` dependency) |
+
+---
+
+## 🚀 How to Run Locally
+
+### Prerequisites
+- [Node.js](https://nodejs.org) v16 or higher
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/)
+
+### Step 1 — Clone this repo
+
+```bash
+git clone https://github.com/Jishnu513/lucidledger-inji-verify.git
+cd lucidledger-inji-verify
 ```
 
-### Run Docker Image:
+### Step 2 — Start Backend (Inji Certify Docker Stack)
 
-(Note: Make sure that the following commands are run in the directory where Dockerfile is present)
+> This runs the VC issuance backend locally.
 
-Run the following commands to build and test the application as docker images
-
-```shell
-mvn -U -B package
-docker build -t <dockerImageName>:<tag> .
-docker run -it -d -p 3000:8000 --env-file ./.env --name inji-verify-service-dev <dockerImageName>:<tag>
+```bash
+cd inji-certify/docker-compose/docker-compose-injistack
+docker compose up -d
 ```
 
-Inji verify backend is designed to run in local with in memory H2 DB also we have another spring profile to do same. This can
-be controlled by passing `active_profile_env` environment variable while building the docker image
-
-```shell
-mvn -U -B package
-docker build --build-arg active_profile=local -t <dockerImageName>:<tag> .
-docker run -it -d -p 3000:8000 --env-file ./.env --name inji-verify-service-dev <dockerImageName>:<tag>
+Wait ~40 seconds, then check it's running:
+```bash
+docker ps
+# Should show 4 containers: database, certify, Mimoto-Service, inji-web
 ```
 
-To build the Docker image locally, use the following command. Ensure you are in the directory containing the Dockerfile:
-
-```shell
-docker build -t inji-verify-service:local
+Verify the API works:
+```
+http://localhost:8099/v1/mimoto/issuers  →  Should return 200 OK with JSON
 ```
 
-Stop and delete the docker containers using the following commands:
+### Step 3 — Start Inji Verify Frontend
 
-```shell
-docker stop inji-verify-service-dev
-docker rm inji-verify-service-dev
+```bash
+cd lucidledger-inji-verify/verify-ui
+npm install
+npm start
 ```
 
-## Environment variables
-- *DATABASE_HOST* : Hostname of the database server
-- *DATABASE_PORT* : Port where the database service is accessible
-- *DATABASE_USERNAME* : Username for database access
-- *DATABASE_PASSWORD* : User password for database access
-- *INJI_VP_REQUEST_LONG_POLLING_TIMEOUT* : This configuration sets the VP request status long polling timeout using the INJI_VP_REQUEST_LONG_POLLING_TIMEOUT environment variable. If the variable is not set, the default timeout is 55,000 ms
+App opens automatically at: **http://localhost:3000**
 
-# Demo Setup:
+### Step 4 — Test the Custom Flow
 
-This section helps to quickly get started with a demo of the Inji Verify application
+| URL | What you see |
+|-----|-------------|
+| http://localhost:3000 | Inji Verify home — upload a VC file |
+| http://localhost:3000/consent | **Our custom OTP page** |
+| http://localhost:3000/landing | **Our custom landing page** |
 
-Once the repository is cloned, move into the inji-verify repository directory.
-Choose one of the branches that are currently available for the demo:
-
-release branches:
-- release-0.11.x
-
-tags : 
-- v0.11.0
-
-active branches:
-- master
-- develop
-
-```shell
-cd ./inji-verify # repository folder
-git checkout branchName/tagname # choose from any of the above branches
+**Quick demo (no VC needed):**
 ```
+1. Open http://localhost:3000/consent
+2. Type 111111 in the OTP boxes
+3. Click "Verify & Continue"
+4. ✅ Landing page appears
+```
+
+---
+
+## 🔧 Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend Framework | React 18 + TypeScript |
+| Routing | React Router DOM v6 |
+| State Management | Redux Toolkit + Redux Saga |
+| Styling | Tailwind CSS + Inline styles |
+| Backend | MOSIP Inji Certify (Spring Boot via Docker) |
+| Database | PostgreSQL |
+| VC Protocol | OpenID4VCI |
+| Deployment | Vercel (frontend) |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│                 LOCAL MACHINE                    │
+│                                                  │
+│  Docker Containers                               │
+│  ├── PostgreSQL          :5433                   │
+│  ├── Inji Certify        :8090  (VC issuance)   │
+│  ├── Mimoto BFF          :8099  (API layer)      │
+│  └── Inji Web            :3001  (download UI)   │
+│                                                  │
+│  React App (npm start)                           │
+│  └── Inji Verify         :3000  (customized)    │
+│       ├── /              Upload QR Code          │
+│       ├── /consent  ←── OTP Page [NEW]          │
+│       └── /landing  ←── Success Page [NEW]      │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 📸 Screenshots
+
+### Consent / OTP Page (`/consent`)
+- LucidLedger branding
+- "Verify Your Identity" heading
+- 6-digit OTP boxes (enter `111111`)
+- "Step 2 of 2" badge
+
+### Landing Page (`/landing`)
+- Green animated checkmark
+- "Welcome! Thank You."
+- "Your loan application is being processed."
+- Status tracker: Identity Verified → Consent Recorded → Application Processing → Loan Disbursement
+- Unique Application Reference ID (e.g., `LL-2026-3WLEGZ`)
+- "Our team will review within 24–48 hours" message
+
+---
+
+## 👤 Author
+
+**Jishn**  
+LucidLedger Internship — April 2026  
+Assignment: MOSIP Inji Stack — Verifiable Credential & Custom UI Integration

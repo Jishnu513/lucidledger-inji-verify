@@ -1,91 +1,141 @@
 # LucidLedger — Inji Verify Customization
-### Internship Assignment Submission | Jishn | April 2026
+
+> **Internship Assignment** | MOSIP Inji Stack Integration | Jishn | April 2026
 
 ---
 
-## 🎯 Assignment Objective
+## 🌐 Live Demo
 
-Customize the MOSIP **Inji Verify** application to add a post-login consent and loan processing UI flow:
+| Page | Link |
+|------|------|
+| 🏠 Home | [verify-ui-alpha.vercel.app](https://verify-ui-alpha.vercel.app) |
+| 🔐 Consent / OTP Page | [verify-ui-alpha.vercel.app/consent](https://verify-ui-alpha.vercel.app/consent) |
+| ✅ Loan Processing Page | [verify-ui-alpha.vercel.app/landing](https://verify-ui-alpha.vercel.app/landing) |
 
-1. After successful Verifiable Credential (VC) verification → show **Consent/OTP page**
-2. User enters OTP `111111` → show **Loan Processing Landing page**
+**To test the demo:**
+1. Open https://verify-ui-alpha.vercel.app/consent
+2. Enter OTP: **`111111`** (one digit per box)
+3. Click **"Verify & Continue"**
+4. You land on the success page automatically ✅
 
 ---
 
-## ✅ What Was Built
+## 🎯 What This Project Does
 
-### New Pages Added to Inji Verify
+This is the official **MOSIP Inji Verify** application, customized with a post-login consent and loan processing flow.
 
-| Page | Route | Description |
-|------|-------|-------------|
-| Consent/OTP Page | `/consent` | 6-digit OTP input. Only `111111` accepted. Auto-redirects to landing. |
-| Landing Page | `/landing` | "Welcome! Thank You. Your loan application is being processed." |
+### The Problem It Solves
+MOSIP Inji Verify allows users to verify their identity using a **Verifiable Credential (VC)**. After a user successfully verifies their identity, this customization adds:
+1. A **Consent/OTP page** — the user must enter a 6-digit OTP (`111111`) to confirm they consent to sharing their data
+2. A **Loan Processing page** — confirms their loan application is being processed
 
-### Files Added / Modified
+### How It Works (Step by Step)
 
 ```
-inji-verify/verify-ui/src/
-├── pages/
-│   ├── ConsentPage.tsx          ← NEW: OTP consent page
-│   └── LandingPage.tsx          ← NEW: Loan processing success page
-├── App.tsx                      ← MODIFIED: Added /consent and /landing routes
-├── utils/config.ts              ← MODIFIED: Added Consent and Landing to Pages object
-└── components/Home/
-    └── VerificationSection/
-        └── Result/index.tsx     ← MODIFIED: Auto-redirect to /consent on VC SUCCESS
+User opens Inji Verify
+        │
+        ▼
+  Uploads VC (QR Code / PDF)
+        │
+        ▼
+  Inji Verify scans & verifies the credential
+        │
+        ▼ (if verification = SUCCESS)
+  ┌─────────────────────────────┐
+  │   /consent — OTP Page       │  ← We built this
+  │   Enter 111111 → click      │
+  │   "Verify & Continue"       │
+  └─────────────┬───────────────┘
+                │
+                ▼ (auto redirect)
+  ┌─────────────────────────────┐
+  │   /landing — Success Page   │  ← We built this
+  │   "Welcome! Thank You."     │
+  │   "Your loan application    │
+  │    is being processed."     │
+  └─────────────────────────────┘
 ```
+
+---
+
+## 🗂️ Files Added / Modified
+
+### New Files (Built from scratch)
+
+| File | What it does |
+|------|-------------|
+| `verify-ui/src/pages/ConsentPage.tsx` | 6-digit OTP page. Only `111111` is accepted. Shakes on wrong OTP. Auto-redirects to `/landing` on success. |
+| `verify-ui/src/pages/LandingPage.tsx` | Success page with animated checkmark, live status tracker, reference ID, and loan processing message. |
+
+### Modified Files
+
+| File | What changed |
+|------|-------------|
+| `verify-ui/src/App.tsx` | Imported and registered `/consent` and `/landing` routes |
+| `verify-ui/src/utils/config.ts` | Added `Consent` and `Landing` to the `Pages` config object |
+| `verify-ui/src/components/Home/VerificationSection/Result/index.tsx` | Added `useEffect` to auto-redirect to `/consent` when VC verification returns `SUCCESS` |
+| `verify-ui/package.json` | Changed start script to be Windows-compatible (removed Linux `sh` dependency) |
 
 ---
 
 ## 🚀 How to Run Locally
 
 ### Prerequisites
-- Node.js (v16+)
-- Docker Desktop
-- Git
+- [Node.js](https://nodejs.org) v16 or higher
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/)
 
-### Step 1 — Start Backend (Inji Certify Stack)
+### Step 1 — Clone this repo
+
+```bash
+git clone https://github.com/Jishnu513/lucidledger-inji-verify.git
+cd lucidledger-inji-verify
+```
+
+### Step 2 — Start Backend (Inji Certify Docker Stack)
+
+> This runs the VC issuance backend locally.
 
 ```bash
 cd inji-certify/docker-compose/docker-compose-injistack
 docker compose up -d
 ```
 
-Verify backend is running:
-```
-http://localhost:8099/v1/mimoto/issuers → should return 200 OK
+Wait ~40 seconds, then check it's running:
+```bash
+docker ps
+# Should show 4 containers: database, certify, Mimoto-Service, inji-web
 ```
 
-### Step 2 — Start Frontend (Inji Verify)
+Verify the API works:
+```
+http://localhost:8099/v1/mimoto/issuers  →  Should return 200 OK with JSON
+```
+
+### Step 3 — Start Inji Verify Frontend
 
 ```bash
-cd inji-verify/verify-ui
+cd lucidledger-inji-verify/verify-ui
 npm install
 npm start
 ```
 
-App runs at: **http://localhost:3000**
+App opens automatically at: **http://localhost:3000**
 
----
+### Step 4 — Test the Custom Flow
 
-## 🌐 Live Demo
+| URL | What you see |
+|-----|-------------|
+| http://localhost:3000 | Inji Verify home — upload a VC file |
+| http://localhost:3000/consent | **Our custom OTP page** |
+| http://localhost:3000/landing | **Our custom landing page** |
 
-| Page | URL |
-|------|-----|
-| Inji Verify Home | http://localhost:3000 |
-| **Consent/OTP Page** | http://localhost:3000/consent |
-| **Landing Page** | http://localhost:3000/landing |
-
----
-
-## 📋 Demo Flow
-
+**Quick demo (no VC needed):**
 ```
 1. Open http://localhost:3000/consent
-2. Enter OTP: 111111 (one digit per box)
+2. Type 111111 in the OTP boxes
 3. Click "Verify & Continue"
-4. Auto-redirects to Landing Page
-5. Shows: "Welcome! Thank You. Your loan application is being processed."
+4. ✅ Landing page appears
 ```
 
 ---
@@ -94,53 +144,54 @@ App runs at: **http://localhost:3000**
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Tailwind CSS |
-| State Management | Redux Toolkit + Redux Saga |
+| Frontend Framework | React 18 + TypeScript |
 | Routing | React Router DOM v6 |
-| Backend | MOSIP Inji Certify (Spring Boot, Docker) |
+| State Management | Redux Toolkit + Redux Saga |
+| Styling | Tailwind CSS + Inline styles |
+| Backend | MOSIP Inji Certify (Spring Boot via Docker) |
 | Database | PostgreSQL |
 | VC Protocol | OpenID4VCI |
+| Deployment | Vercel (frontend) |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-User
- │
- ▼
-Inji Verify Frontend (localhost:3000)
- ├── / ──────────────→ Upload QR Code (original)
- ├── /consent ───────→ OTP Consent Page [NEW]
- │    └── OTP=111111 → redirect
- └── /landing ───────→ Loan Processing Page [NEW]
-
-Backend (Docker)
- ├── Mimoto BFF      (localhost:8099)
- ├── Inji Certify    (localhost:8090)
- ├── Inji Web        (localhost:3001)
- └── PostgreSQL      (localhost:5433)
+┌─────────────────────────────────────────────────┐
+│                 LOCAL MACHINE                    │
+│                                                  │
+│  Docker Containers                               │
+│  ├── PostgreSQL          :5433                   │
+│  ├── Inji Certify        :8090  (VC issuance)   │
+│  ├── Mimoto BFF          :8099  (API layer)      │
+│  └── Inji Web            :3001  (download UI)   │
+│                                                  │
+│  React App (npm start)                           │
+│  └── Inji Verify         :3000  (customized)    │
+│       ├── /              Upload QR Code          │
+│       ├── /consent  ←── OTP Page [NEW]          │
+│       └── /landing  ←── Success Page [NEW]      │
+└─────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📁 Project Structure
+## 📸 Screenshots
 
-```
-LucidLedger/
-├── inji-certify/              ← MOSIP Inji Certify (Part A)
-│   └── docker-compose/
-│       └── docker-compose-injistack/
-│           ├── docker-compose.yaml
-│           └── config/
-├── inji-verify/               ← MOSIP Inji Verify (Part B - Customized)
-│   └── verify-ui/
-│       └── src/
-│           └── pages/
-│               ├── ConsentPage.tsx
-│               └── LandingPage.tsx
-└── ASSIGNMENT_SUBMISSION.md   ← Full submission report
-```
+### Consent / OTP Page (`/consent`)
+- LucidLedger branding
+- "Verify Your Identity" heading
+- 6-digit OTP boxes (enter `111111`)
+- "Step 2 of 2" badge
+
+### Landing Page (`/landing`)
+- Green animated checkmark
+- "Welcome! Thank You."
+- "Your loan application is being processed."
+- Status tracker: Identity Verified → Consent Recorded → Application Processing → Loan Disbursement
+- Unique Application Reference ID (e.g., `LL-2026-3WLEGZ`)
+- "Our team will review within 24–48 hours" message
 
 ---
 
@@ -148,4 +199,4 @@ LucidLedger/
 
 **Jishn**  
 LucidLedger Internship — April 2026  
-Assignment: MOSIP Inji Stack Integration
+Assignment: MOSIP Inji Stack — Verifiable Credential & Custom UI Integration
