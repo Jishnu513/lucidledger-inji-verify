@@ -131,14 +131,8 @@ export const PartyInfoPage = () => {
             <div style={{ fontSize: "56px", marginBottom: "16px" }}>📭</div>
             <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#1e1b4b", margin: "0 0 8px 0" }}>Waiting for Information</h2>
             <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, margin: "0 0 28px 0" }}>
-              No data received yet. Share this page URL with your query parameters,<br />or enter information manually below.
+              No information received yet.<br />You can enter the information manually below.
             </p>
-            <div style={{ background: "#f8faff", borderRadius: "12px", padding: "14px 16px", marginBottom: "24px", textAlign: "left", border: "1px solid #e0e7ff" }}>
-              <div style={{ fontSize: "11px", fontWeight: 600, color: "#94a3b8", marginBottom: "6px", letterSpacing: "0.06em" }}>EXAMPLE URL</div>
-              <code style={{ fontSize: "11px", color: "#6366f1", wordBreak: "break-all" }}>
-                /party-info?name=John+Doe&organization=HDFC+Bank&status=Approved&amount=50000
-              </code>
-            </div>
             <button onClick={() => setFormMode(true)} style={{ padding: "14px 32px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: "pointer", boxShadow: "0 4px 16px rgba(99,102,241,0.35)" }}>
               Enter Information Manually
             </button>
