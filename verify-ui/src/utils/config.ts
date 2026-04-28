@@ -9,6 +9,7 @@ export const Pages = {
     Redirect: "/redirect",
     Consent: "/consent",
     Landing: "/landing",
+    PartyInfo: "/party-info",
     PageNotFound: "*"
 }
 

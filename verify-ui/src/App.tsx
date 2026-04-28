@@ -17,6 +17,7 @@ import { goToHomeScreen } from "./redux/features/verification/verification.slice
 import { Verify } from "./pages/Verify";
 import { ConsentPage } from "./pages/ConsentPage";
 import { LandingPage } from "./pages/LandingPage";
+import { PartyInfoPage } from "./pages/PartyInfoPage";
 
 function switchToVerificationMethod(method: VerificationMethod) {
   store.dispatch(goToHomeScreen({ method }));
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
   {
     path: Pages.Landing,
     element: <LandingPage />,
+  },
+  {
+    path: Pages.PartyInfo,
+    element: <PartyInfoPage />,
   },
   {
     path: Pages.PageNotFound,
